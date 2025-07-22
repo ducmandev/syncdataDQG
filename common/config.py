@@ -21,6 +21,6 @@ class Settings(BaseSettings):
     API_USERNAME: str
     API_PASSWORD: str
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 settings = Settings()

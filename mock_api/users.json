@@ -1,0 +1,20 @@
+[
+  {
+    "shop_id": "SHOP001",
+    "ma_co_so": "CS001",
+    "tai_khoan": "user1",
+    "mat_khau": "password1"
+  },
+  {
+    "shop_id": "SHOP002",
+    "ma_co_so": "CS002",
+    "tai_khoan": "user2",
+    "mat_khau": "password2"
+  },
+  {
+    "shop_id": "SHOP003",
+    "ma_co_so": "CS003",
+    "tai_khoan": "user3",
+    "mat_khau": "password3"
+  }
+]

@@ -1,17 +1,21 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
+class BaseModelIgnoreExtra(BaseModel):
+    class Config:
+        extra = "ignore"
+
 # 1. Login Models
-class LoginRequest(BaseModel):
+class LoginRequest(BaseModelIgnoreExtra):
     usr: str
     pwd: str
 
-class LoginResponse(BaseModel):
+class LoginResponse(BaseModelIgnoreExtra):
     token: str
     token_type: str
 
 # 2. Sales Invoice Models
-class SalesInvoiceDetail(BaseModel):
+class SalesInvoiceDetail(BaseModelIgnoreExtra):
     ma_thuoc: str
     ten_thuoc: str
     so_lo: str
@@ -27,7 +31,7 @@ class SalesInvoiceDetail(BaseModel):
     ngay_san_xuat: Optional[str] = None
     duong_dung: Optional[str] = None
 
-class SalesInvoice(BaseModel):
+class SalesInvoice(BaseModelIgnoreExtra):
     ma_hoa_don: str
     ma_co_so: str
     ngay_ban: str  # Format: yyyyMMdd
@@ -37,7 +41,7 @@ class SalesInvoice(BaseModel):
     ho_ten_khach_hang: Optional[str] = None
 
 # 3. Purchase Receipt Models
-class PurchaseReceiptDetail(BaseModel):
+class PurchaseReceiptDetail(BaseModelIgnoreExtra):
     ma_thuoc: str
     ten_thuoc: str
     so_lo: str
@@ -48,7 +52,7 @@ class PurchaseReceiptDetail(BaseModel):
     ngay_san_xuat: Optional[str] = None
     don_gia: Optional[float] = None
 
-class PurchaseReceipt(BaseModel):
+class PurchaseReceipt(BaseModelIgnoreExtra):
     ma_phieu: str
     ma_co_so: str
     ngay_nhap: str  # Format: yyyyMMdd
@@ -58,7 +62,7 @@ class PurchaseReceipt(BaseModel):
     ten_co_so_cung_cap: Optional[str] = None
 
 # 4. Goods Issue (Cancellation) Models
-class GoodsIssueDetail(BaseModel):
+class GoodsIssueDetail(BaseModelIgnoreExtra):
     ma_thuoc: str
     ten_thuoc: str
     so_lo: str
@@ -68,7 +72,7 @@ class GoodsIssueDetail(BaseModel):
     don_gia: float
     don_vi_tinh: str
 
-class GoodsIssueSlip(BaseModel):
+class GoodsIssueSlip(BaseModelIgnoreExtra):
     ma_phieu: str
     ma_co_so: str
     ngay_xuat: str  # Format: yyyyMMdd

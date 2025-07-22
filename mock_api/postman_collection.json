@@ -1,0 +1,92 @@
+{
+  "info": {
+    "name": "Mock API Collection using Postman",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Liên thông Hóa Đơn",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/lien_thong/hoa_don",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "lien_thong", "hoa_don"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ma_hoa_don\": \"HD001\",\n  \"ma_co_so\": \"CS001\",\n  \"ma_don_thuoc_quoc_gia\": \"DTQG001\",\n  \"ngay_ban\": \"20250720\",\n  \"ho_ten_nguoi_ban\": \"Nguyen Van A\",\n  \"ho_ten_khach_hang\": \"Le Thi B\",\n  \"hoa_don_chi_tiet\": [\n    {\n      \"ma_thuoc\": \"T001\",\n      \"ten_thuoc\": \"Thuoc B\",\n      \"so_lo\": \"L001\",\n      \"ngay_san_xuat\": \"20250101\",\n      \"han_dung\": \"20260101\",\n      \"don_vi_tinh\": \"hop\",\n      \"ham_luong\": \"500mg\",\n      \"duong_dung\": \"Uong\",\n      \"lieu_dung\": \"2 vien/ngay\",\n      \"so_dang_ky\": \"SDK001\",\n      \"so_luong\": 5,\n      \"don_gia\": 10000,\n      \"thanh_tien\": 50000,\n      \"ty_le_quy_doi\": 1\n    }\n  ]\n}"
+        }
+      }
+    },
+    {
+      "name": "Liên thông Phiếu Nhập",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/lien_thong/phieu_nhap",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "lien_thong", "phieu_nhap"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ma_phieu\": \"PN001\",\n  \"ma_co_so\": \"CS001\",\n  \"ngay_nhap\": \"20250720\",\n  \"loai_phieu_nhap\": 1,\n  \"ghi_chu\": \"Test nhập\",\n  \"ten_co_so_cung_cap\": \"Supplier A\",\n  \"chi_tiet\": [\n    {\n      \"ma_thuoc\": \"T001\",\n      \"ten_thuoc\": \"Thuoc A\",\n      \"so_lo\": \"L001\",\n      \"ngay_san_xuat\": \"20250101\",\n      \"han_dung\": \"20260101\",\n      \"so_dklh\": \"DKLH001\",\n      \"so_luong\": 10,\n      \"don_gia\": 5000,\n      \"don_vi_tinh\": \"hop\"\n    }\n  ]\n}"
+        }
+      }
+    },
+    {
+      "name": "Liên thông Phiếu Xuất",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/lien_thong/phieu_xuat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "lien_thong", "phieu_xuat"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ma_phieu\": \"PX001\",\n  \"ma_co_so\": \"CS001\",\n  \"ngay_xuat\": \"20250720\",\n  \"loai_phieu_xuat\": 2,\n  \"ghi_chu\": \"Test xuất\",\n  \"ten_co_so_nhan\": \"Receiver A\",\n  \"chi_tiet\": [\n    {\n      \"ma_thuoc\": \"T002\",\n      \"ten_thuoc\": \"Thuoc C\",\n      \"so_lo\": \"L002\",\n      \"han_dung\": \"20260101\",\n      \"so_dklh\": \"DKLH002\",\n      \"so_luong\": 3,\n      \"don_gia\": 7000,\n      \"don_vi_tinh\": \"hop\"\n    }\n  ]\n}"
+        }
+      }
+    },
+    {
+      "name": "Liên thông Phiếu Xuất Hủy",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/lien_thong/phieu_xuat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "lien_thong", "phieu_xuat"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ma_phieu\": \"PX002\",\n  \"ma_co_so\": \"CS001\",\n  \"ngay_xuat\": \"20250720\",\n  \"loai_phieu_xuat\": 3,\n  \"ghi_chu\": \"Xuất hủy thuốc hết hạn\",\n  \"ten_co_so_nhan\": \"\",\n  \"chi_tiet\": [\n    {\n      \"ma_thuoc\": \"T003\",\n      \"ten_thuoc\": \"Thuoc D\",\n      \"so_lo\": \"L003\",\n      \"han_dung\": \"20250101\",\n      \"so_dklh\": \"DKLH003\",\n      \"so_luong\": 2,\n      \"don_gia\": 0,\n      \"don_vi_tinh\": \"hop\"\n    }\n  ]\n}"
+        }
+      }
+    }
+  ]
+}
