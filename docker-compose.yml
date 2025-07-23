@@ -1,63 +1,32 @@
+version: '3.8'
+
 services:
-  mssql:
-    image: mcr.microsoft.com/mssql/server:2019-latest
-    container_name: mssql
-    environment:
-      SA_PASSWORD: "YourStrong!Passw0rd"
-      ACCEPT_EULA: "Y"
-      MSSQL_PID: "Express"
-    ports:
-      - "1433:1433"
-    # healthcheck:
-    #   test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "YourStrong!Passw0rd", "-Q", "SELECT 1"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 5
-    volumes:
-      - ./database.sql:/init/database.sql
-
-  mssql-init:
-    image: mcr.microsoft.com/mssql-tools
-    depends_on:
-      - mssql
-    volumes:
-      - ./database.sql:/init/database.sql
-    entrypoint: >
-      /bin/bash -c "
-        sleep 10;
-        /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P 'YourStrong!Passw0rd' -i /init/database.sql
-      "
-
   redis:
-    image: redis:7
-    container_name: redis
-    ports:
-      - "6379:6379"
+    image: redis:alpine
 
-  mongodb:
-    image: mongo:6
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-
-  importer:
+  core:
     build:
       context: .
-      dockerfile: importer/Dockerfile
-    command: celery -A importer.celery_app worker -l info -Q import_queue
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
     depends_on:
-      - mssql
-    volumes:
-      - .:/app
-    env_file: .env
+      - redis
 
-  scheduler:
+  worker:
     build:
       context: .
-      dockerfile: scheduler/Dockerfile
-    command: celery -A scheduler.celery_app beat -l info
+    command: celery -A src.workers worker --loglevel=info
+    env_file:
+      - .env
     depends_on:
-      - mssql
-    volumes:
-      - .:/app
-    env_file: .env
+      - redis
+      - core
+
+  test:
+    build: .
+    command: pytest tests/
+    depends_on:
+      - redis

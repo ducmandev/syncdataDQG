@@ -132,4 +132,4 @@ Lưu chi tiết từng loại thuốc trong một hóa đơn.
 | `shop_pharmacy_code` | NVARCHAR(50) | ✅ | Mã shop ở cơ sở |
 | `pharmacy_code` | NVARCHAR(50) | ✅ | Mã cơ sở GPP. |
 | `account` | NVARCHAR(50) | ✅ | **Khóa ngoại, liên kết tới `GoodsIssueSlips(id)`.** |
-| `password` | NVARCHAR(50) | ✅ | Mã thuốc. |
+| `password` | NVARCHAR(50) | ✅ | (Ẩn thông tin nhạy cảm) |

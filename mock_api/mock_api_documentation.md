@@ -12,7 +12,7 @@ This document describes all endpoints in the mock_api service and provides sampl
 ```json
 {
   "usr": "user1",
-  "pwd": "password1"
+  "pwd": "******"
 }
 ```
 
@@ -36,7 +36,7 @@ This document describes all endpoints in the mock_api service and provides sampl
   "shop_id": "SHOP001",
   "ma_co_so": "CS001",
   "tai_khoan": "user1",
-  "mat_khau": "password1"
+  "mat_khau": "******"
 }
 ```
 
