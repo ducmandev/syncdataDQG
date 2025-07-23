@@ -40,24 +40,13 @@ services:
     ports:
       - "27017:27017"
 
-  importer:
-    build:
-      context: .
-      dockerfile: importer/Dockerfile
-    command: celery -A importer.celery_app worker -l info -Q import_queue
+  mock_api:
+    build: ./mock_api
+    container_name: mock_api
     depends_on:
       - mssql
-    volumes:
-      - .:/app
-    env_file: .env
-
-  scheduler:
-    build:
-      context: .
-      dockerfile: scheduler/Dockerfile
-    command: celery -A scheduler.celery_app beat -l info
-    depends_on:
-      - mssql
-    volumes:
-      - .:/app
-    env_file: .env
+      - mssql-init
+      - redis
+      - mongodb
+    ports:
+      - "8000:8000"

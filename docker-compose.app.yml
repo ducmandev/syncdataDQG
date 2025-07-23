@@ -1,0 +1,18 @@
+services:
+  scheduler:
+    build:
+      context: .
+      dockerfile: scheduler/Dockerfile
+    command: celery -A scheduler.celery_app beat -l info
+    volumes:
+      - .:/app
+    env_file: .env
+
+  importer:
+    build:
+      context: .
+      dockerfile: importer/Dockerfile
+    command: celery -A importer.celery_app worker -l info -Q import_queue
+    volumes:
+      - .:/app
+    env_file: .env

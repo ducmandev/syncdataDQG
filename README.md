@@ -1,141 +1,154 @@
-# Python-Celery Data Synchronization System
-## Hệ thống Đồng bộ Dữ liệu Python-Celery
+# Phân Tích Hệ Thống Đồng Bộ Dữ Liệu
 
-This project is a robust, multi-service application designed to synchronize data from an MSSQL database to a set of REST APIs. It is built with a scalable architecture using Python, Celery, Redis, and MongoDB.
-*Dự án này là một ứng dụng đa dịch vụ mạnh mẽ được thiết kế để đồng bộ hóa dữ liệu từ cơ sở dữ liệu MSSQL đến một bộ các REST API. Nó được xây dựng với kiến trúc có khả năng mở rộng bằng Python, Celery, Redis và MongoDB.*
+Tài liệu này phân tích kiến trúc và luồng hoạt động của hệ thống đồng bộ dữ liệu, được xây dựng dựa trên kiến trúc microservices sử dụng Celery và Docker.
 
----
+## 1. Tổng Quan Kiến Trúc
 
-## System Architecture / Kiến trúc Hệ thống
+Dự án này là một hệ thống xử lý dữ liệu bất đồng bộ, có nhiệm vụ tự động trích xuất dữ liệu từ một CSDL MSSQL cục bộ, xử lý, và đồng bộ lên một hệ thống API quốc gia.
 
-The application is designed as a microservices-style monorepo with four main services and a shared common library:
-*Ứng dụng được thiết kế theo kiểu monorepo đa dịch vụ với bốn dịch vụ chính và một thư viện chung được chia sẻ:*
+### Các Thành Phần Chính:
 
--   **`common`**: A shared Python library containing all core logic, including database clients, the API client, Pydantic data models, and configuration management. / *Một thư viện Python dùng chung chứa tất cả logic cốt lõi, bao gồm các trình kết nối cơ sở dữ liệu, trình kết nối API, mô hình dữ liệu Pydantic và quản lý cấu hình.*
--   **`scheduler`**: A standalone Celery Beat service that periodically queries the MSSQL database for new records and dispatches processing tasks. / *Một dịch vụ Celery Beat độc lập, định kỳ truy vấn cơ sở dữ liệu MSSQL để tìm các bản ghi mới và gửi đi các tác vụ xử lý.*
--   **`saler`**: A Celery worker service that listens to the `sale_queue` to process and sync sales invoice data. / *Một dịch vụ worker Celery lắng nghe `sale_queue` để xử lý và đồng bộ dữ liệu hóa đơn bán hàng.*
--   **`importer`**: A Celery worker service that listens to the `import_queue` to process and sync purchase receipt data. / *Một dịch vụ worker Celery lắng nghe `import_queue` để xử lý và đồng bộ dữ liệu phiếu nhập kho.*
--   **`canceller`**: A Celery worker service that listens to the `cancellation_queue` to process and sync goods issue/cancellation data. / *Một dịch vụ worker Celery lắng nghe `cancellation_queue` để xử lý và đồng bộ dữ liệu phiếu xuất/hủy.*
+*   **`scheduler` (Bộ Lập Lịch):** Là "bộ não" của hệ thống, định kỳ quét CSDL để tìm dữ liệu mới và điều phối công việc cho các workers.
+*   **`saler`, `importer`, `canceller` (Workers):** Các microservice độc lập, mỗi service xử lý một nghiệp vụ cụ thể (bán hàng, nhập kho, hủy phiếu) sau khi nhận tác vụ từ scheduler.
+*   **`common` (Thư Viện Chung):** Một thư viện chứa mã nguồn được chia sẻ giữa các service, bao gồm cấu hình, kết nối CSDL, models dữ liệu và API clients.
+*   **Cơ Sở Hạ Tầng:**
+    *   **Redis:** Đóng vai trò là Message Broker, quản lý hàng đợi tác vụ (task queues).
+    *   **MSSQL:** CSDL nguồn chứa dữ liệu kinh doanh.
+    *   **MongoDB:** Dùng để lưu trữ log chi tiết về trạng thái và lỗi của các tác vụ.
+    *   **Docker:** Đóng gói mỗi service thành một container độc lập, dễ dàng triển khai và quản lý.
 
-This separation allows for independent scaling and deployment of each component.
-*Sự tách biệt này cho phép mở rộng quy mô và triển khai độc lập cho từng thành phần.*
+### Sơ Đồ Kiến Trúc Tổng Thể
 
----
+```mermaid
+graph TD
+    subgraph "Scheduler Service"
+        A["Celery Beat (mỗi phút)"] --> B{Task: scan_and_dispatch};
+        B --> C{"Quét MSSQL tìm dữ liệu mới (Bán hàng, Nhập, Hủy)"};
+    end
 
-## Prerequisites / Yêu cầu Cần có
+    subgraph "Message Queues (Redis)"
+        Q1["sale_queue"];
+        Q2["import_queue"];
+        Q3["cancellation_queue"];
+    end
 
--   Docker and Docker Compose / *Docker và Docker Compose*
--   Python 3.10+
--   Access to an MSSQL database, a MongoDB instance, and a Redis instance. / *Quyền truy cập vào cơ sở dữ liệu MSSQL, một instance MongoDB và một instance Redis.*
+    subgraph "Worker Services"
+        W1["Saler Worker"];
+        W2["Importer Worker"];
+        W3["Canceller Worker"];
+    end
 
----
+    subgraph "External Systems"
+        DB_MSSQL["MSSQL Database"];
+        EXT_API["National API"];
+        DB_MONGO["MongoDB (Logs)"];
+    end
 
-## Getting Started / Bắt đầu
+    C -- "Tìm thấy Hóa đơn" --> |"Gửi task sale.process_sale"| Q1;
+    C -- "Tìm thấy Phiếu nhập" --> |"Gửi task import.process_import"| Q2;
+    C -- "Tìm thấy Phiếu hủy" --> |"Gửi task cancellation.process_cancellation"| Q3;
 
-### 1. Clone the Repository / Tải Repository về
+    Q1 --> W1;
+    Q2 --> W2;
+    Q3 --> W3;
 
-```bash
-git clone <your-repository-url>
-cd <repository-name>
+    W1 -- "Xử lý Hóa đơn" --> DB_MSSQL;
+    W1 -- "Gửi/Cập nhật" --> EXT_API;
+    W1 -- "Ghi Log" --> DB_MONGO;
+
+    W2 -- "Xử lý Phiếu nhập" --> DB_MSSQL;
+    W2 -- "Gửi/Cập nhật" --> EXT_API;
+    W2 -- "Ghi Log" --> DB_MONGO;
+
+    W3 -- "Xử lý Phiếu hủy" --> DB_MSSQL;
+    W3 -- "Gửi/Cập nhật" --> EXT_API;
+    W3 -- "Ghi Log" --> DB_MONGO;
+
+    classDef scheduler fill:#e6f2ff,stroke:#b3d9ff,stroke-width:2px;
+    classDef worker fill:#e6ffe6,stroke:#b3ffb3,stroke-width:2px;
+    classDef queue fill:#fff0e6,stroke:#ffccb3,stroke-width:2px;
+    classDef external fill:#f2f2f2,stroke:#cccccc,stroke-width:2px;
+
+    class A,B,C scheduler;
+    class W1,W2,W3 worker;
+    class Q1,Q2,Q3 queue;
+    class DB_MSSQL,EXT_API,DB_MONGO external;
 ```
 
-### 2. Create the Environment File / Tạo Tệp Môi trường
+## 2. Luồng Hoạt Động Chi Tiết
 
-Create a file named `.env` in the root of the project. Use the structure below and fill in the credentials for your databases and the target API.
-*Tạo một tệp có tên `.env` ở thư mục gốc của dự án. Sử dụng cấu trúc bên dưới và điền thông tin xác thực cho cơ sở dữ liệu của bạn và API đích.*
+Luồng hoạt động bắt đầu từ `scheduler`, đi qua hàng đợi `Redis`, và kết thúc ở các `worker`.
 
-```env
-# Redis Configuration
-REDIS_HOST=localhost
-REDIS_PORT=6379
+**Ví dụ với luồng bán hàng (`saler`):**
 
-# MongoDB Configuration
-MONGO_URI=mongodb://localhost:27017/
-MONGO_DB_NAME=sync_data_logs
+1.  **Scheduler:** Mỗi phút, `scheduler` chạy tác vụ `scan_and_dispatch`, quét bảng hóa đơn trong MSSQL.
+2.  **Dispatch:** Khi tìm thấy hóa đơn mới, `scheduler` gửi một tác vụ `sale.process_sale` vào hàng đợi `sale_queue` trên Redis. Đồng thời, một bản ghi log với trạng thái `PENDING` được tạo trong MongoDB.
+3.  **Worker:** `saler` worker, vốn đang lắng nghe trên `sale_queue`, sẽ nhận tác vụ.
+4.  **Process:** `saler` thực hiện các bước:
+    a.  Dùng ID hóa đơn để lấy dữ liệu chi tiết từ MSSQL.
+    b.  Chuyển đổi dữ liệu sang Pydantic model để chuẩn hóa.
+    c.  Gửi dữ liệu đã chuẩn hóa đến API quốc gia.
+    d.  Dựa trên kết quả trả về từ API, cập nhật trạng thái hóa đơn trong MSSQL (`SYNC_SUCCESS` hoặc `SYNC_FAILED`).
+    e.  Cập nhật bản ghi log trong MongoDB sang `SUCCESS` hoặc `FAILED`. Nếu thất bại, một bản ghi lỗi chi tiết sẽ được tạo.
 
-# MSSQL Configuration
-MSSQL_SERVER=your_mssql_server_address
-MSSQL_DATABASE=your_database_name
-MSSQL_USER=your_mssql_username
-MSSQL_PASSWORD=your_mssql_password
-MSSQL_DRIVER='{ODBC Driver 17 for SQL Server}' # Ensure this driver is installed / Đảm bảo driver này đã được cài đặt
+## 3. Phân Tích Các Thành Phần
 
-# National API Configuration
-API_BASE_URL=http://api.example.com
-API_USERNAME=your_api_username
-API_PASSWORD=your_api_password
+### 3.1. Thư Viện `common`
+
+Đây là thư viện chung, tuân thủ nguyên tắc DRY (Don't Repeat Yourself), chứa các mã nguồn được sử dụng lại bởi tất cả các service.
+
+*   **`config.py`**: Tải cấu hình từ file `.env` (thông tin CSDL, API).
+*   **`database/`**: Chứa các clients để tương tác với MSSQL (`mssql_client.py`) và MongoDB (`mongo_client.py`).
+*   **`models/`**: Chứa các Pydantic models (`pydantic_models.py`) để định nghĩa và xác thực cấu trúc dữ liệu.
+*   **`services/`**: Chứa API client (`api_client.py`) để đóng gói logic giao tiếp với API quốc gia.
+
+### 3.2. Hệ Thống Ghi Log (MongoDB)
+
+Hệ thống sử dụng MongoDB để ghi log có cấu trúc, giúp việc giám sát và gỡ lỗi hiệu quả.
+
+*   **Collection `task_logs`**: Lưu trữ vòng đời của mỗi tác vụ (PENDING -> SUCCESS/FAILED).
+*   **Collection `sync_failures`**: Khi một tác vụ thất bại, một bản ghi chi tiết sẽ được lưu tại đây, bao gồm:
+    *   `business_id`: ID của đối tượng nghiệp vụ bị lỗi.
+    *   `payload`: Dữ liệu JSON đã được chuẩn bị để gửi đi.
+    *   `error`: Toàn bộ thông tin traceback của lỗi.
+    *   `timestamp`: Thời điểm xảy ra lỗi.
+
+Sơ đồ vòng đời của một bản ghi log:
+```mermaid
+graph TD
+    subgraph "Scheduler"
+        A[Task Dispatched] -- "log_task_dispatch()" --> B{Log Created: status='PENDING'};
+    end
+
+    subgraph "Worker"
+        C[Task Succeeded] -- "update_task_log_status()" --> D{Log Updated: status='SUCCESS'};
+        E[Task Failed] -- "update_task_log_status()" --> F{Log Updated: status='FAILED'};
+        E -- "log_sync_failure()" --> G[Detailed Error Log Created];
+    end
+
+    B --> C;
+    B --> E;
+
+    classDef log_init fill:#e6f2ff,stroke:#b3d9ff,stroke-width:2px;
+    classDef log_ok fill:#e6ffe6,stroke:#b3ffb3,stroke-width:2px;
+    classDef log_fail fill:#ffe6e6,stroke:#ffb3b3,stroke-width:2px;
+
+    class A,B log_init;
+    class C,D log_ok;
+    class E,F,G log_fail;
 ```
 
-### 3. Install Dependencies / Cài đặt Thư viện
+## 4. Cách Chạy và Triển Khai
 
-Install all the required Python packages from the central `requirements.txt` file.
-*Cài đặt tất cả các gói Python cần thiết từ tệp `requirements.txt`.*
+Mỗi service (`scheduler`, `saler`, `importer`, `canceller`) là một ứng dụng Celery và được đóng gói trong một Docker container riêng.
 
-```bash
-pip install -r requirements.txt
-```
+*   Để khởi động **scheduler**:
+    ```bash
+    celery -A scheduler.celery_app beat -l info
+    ```
+*   Để khởi động một **worker** (ví dụ `saler`):
+    ```bash
+    celery -A saler.celery_app worker -l info -Q sale_queue
+    ```
 
----
-
-## Running the Application / Chạy Ứng dụng
-
-### Using Docker Compose (Recommended) / Sử dụng Docker Compose (Khuyến nghị)
-
-The easiest way to run the entire system is with Docker Compose.
-*Cách dễ nhất để chạy toàn bộ hệ thống là sử dụng Docker Compose.*
-
-```bash
-docker-compose up --build
-```
-
-This command will: / *Lệnh này sẽ:*
-1.  Build the Docker images for all services. / *Xây dựng Docker image cho tất cả các dịch vụ.*
-2.  Start containers for Redis, MongoDB, and all four Python services. / *Khởi động các container cho Redis, MongoDB và cả bốn dịch vụ Python.*
-3.  Automatically apply the environment variables from your `.env` file. / *Tự động áp dụng các biến môi trường từ tệp `.env` của bạn.*
-
-To stop the services, press `Ctrl+C` and then run: / *Để dừng các dịch vụ, nhấn `Ctrl+C` và sau đó chạy:*
-```bash
-docker-compose down
-```
-
-### Running Services Manually / Chạy Thủ công Từng Dịch vụ
-
-You can also run each service individually in separate terminal windows.
-*Bạn cũng có thể chạy từng dịch vụ riêng lẻ trong các cửa sổ terminal khác nhau.*
-
-**Terminal 1: Start the Scheduler / *Khởi động Scheduler***
-```bash
-celery -A scheduler.celery_app beat -l info
-```
-
-**Terminal 2: Start the Sale Worker / *Khởi động Worker Bán hàng***
-```bash
-celery -A saler.celery_app worker -l info -Q sale_queue
-```
-
-**Terminal 3: Start the Import Worker / *Khởi động Worker Nhập hàng***
-```bash
-celery -A importer.celery_app worker -l info -Q import_queue
-```
-
-**Terminal 4: Start the Cancellation Worker / *Khởi động Worker Hủy hàng***
-```bash
-celery -A canceller.celery_app worker -l info -Q cancellation_queue
-```
-
----
-
-## Project Structure / Cấu trúc Dự án
-
-```
-syncdataDQG/
-├── common/             # Shared library / Thư viện dùng chung
-├── importer/           # Import worker service / Dịch vụ worker Nhập
-├── saler/              # Sale worker service / Dịch vụ worker Bán
-├── canceller/          # Cancellation worker service / Dịch vụ worker Hủy
-├── scheduler/          # Scheduler (Celery Beat) service / Dịch vụ Lập lịch
-├── tests/              # Unit and integration tests / Kiểm thử
-├── project_plan/       # Detailed multi-phase project plans / Kế hoạch dự án chi tiết
-├── .env                # Local environment variables (MUST BE CREATED) / Biến môi trường (CẦN TẠO)
-├── docker-compose.yml  # Docker Compose orchestration file / Tệp điều phối Docker Compose
-└── requirements.txt    # All Python dependencies / Tất cả các thư viện Python
+Hệ thống có thể được triển khai dễ dàng bằng `docker-compose` để khởi chạy tất cả các service và cơ sở hạ tầng cần thiết.
