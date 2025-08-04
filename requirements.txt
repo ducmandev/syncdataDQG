@@ -1,7 +1,7 @@
-celery[redis]
+celery
+redis
 pydantic
-requests
-python-dotenv
-
-fastapi
-uvicorn[standard]
+pydantic-settings
+pyodbc
+pymongo
+httpx

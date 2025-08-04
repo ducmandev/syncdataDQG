@@ -1,32 +1,44 @@
 version: '3.8'
 
 services:
-  redis:
-    image: redis:alpine
-
-  core:
-    build:
-      context: .
-    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    depends_on:
-      - redis
-
-  worker:
-    build:
-      context: .
-    command: celery -A src.workers worker --loglevel=info
-    env_file:
-      - .env
-    depends_on:
-      - redis
-      - core
-
-  test:
+  scheduler:
     build: .
-    command: pytest tests/
+    container_name: hermes_scheduler
+    command: ["celery", "-A", "app.main.celery_app", "beat", "--loglevel=info", "-s", "/tmp/celerybeat-schedule"]
+    volumes:
+      - ./app:/app
+    env_file:
+      - .env
+
+  phieu_nhap_worker:
+    build: .
+    container_name: hermes_phieu_nhap_worker
+    command: ["celery", "-A", "app.main.celery_app", "worker", "-Q", "phieu_nhap_queue", "--loglevel=info", "-c", "2"]
+    volumes:
+      - ./app:/app
+    env_file:
+      - .env
     depends_on:
-      - redis
+      - scheduler
+
+  phieu_xuat_worker:
+    build: .
+    container_name: hermes_phieu_xuat_worker
+    command: ["celery", "-A", "app.main.celery_app", "worker", "-Q", "phieu_xuat_queue", "--loglevel=info", "-c", "2"]
+    volumes:
+      - ./app:/app
+    env_file:
+      - .env
+    depends_on:
+      - scheduler
+
+  hoa_don_worker:
+    build: .
+    container_name: hermes_hoa_don_worker
+    command: ["celery", "-A", "app.main.celery_app", "worker", "-Q", "hoa_don_queue", "--loglevel=info", "-c", "2"]
+    volumes:
+      - ./app:/app
+    env_file:
+      - .env
+    depends_on:
+      - scheduler

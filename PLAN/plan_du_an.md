@@ -54,7 +54,7 @@ graph TD
 
 #### **2.2. Giải trình Kiến trúc**
 
-*   **Kiến trúc hướng tác vụ với Celery:** Mô hình này tách biệt hoàn toàn việc phát hiện công việc (Polling) và thực thi công việc (Workers). Điều này cho phép hệ thống mở rộng dễ dàng, đồng thời cơ chế retry và hàng đợi của Celery/Redis đảm bảo không có dữ liệu nào bị mất khi có lỗi tạm thời.
+*   **Kiến trúc hướng tác vụ với Celery:** Mô hình này tách biệt hoàn toàn việc **chuẩn bị dữ liệu** (Polling Service) và **thực thi nghiệp vụ** (Workers). Polling Service chịu trách nhiệm lấy toàn bộ dữ liệu cần thiết từ SQL Server và xây dựng payload. Worker chỉ nhận payload đã được chuẩn bị sẵn, tập trung vào việc gọi API và cập nhật kết quả. Điều này giúp Worker đơn giản, dễ kiểm thử và không phụ thuộc vào cấu trúc DB nguồn.
 *   **Luồng xử lý tuần tự theo ngày:** Một `Scheduler` (Celery Beat) sẽ kích hoạt `Polling Service` chạy định kỳ. Service này sẽ truy vấn các phiếu theo thứ tự ngày tăng dần, đảm bảo tính tuần tự theo yêu cầu nghiệp vụ.
 *   **Dịch vụ riêng biệt:** Mỗi loại phiếu (Nhập, Xuất, Bán) sẽ được xử lý bởi một nhóm worker riêng, giúp cô lập lỗi và cho phép tùy chỉnh logic xử lý một cách độc lập.
 
@@ -95,11 +95,11 @@ Phạm vi của chúng ta bao gồm việc thiết lập một quy trình Tích 
     *   **Story 1.4:** Xây dựng pipeline Tích hợp Liên tục (CI) cơ bản (Lint, Test, Build Image).
 
 *   **Epic 2: Xử lý Phiếu Nhập (End-to-End Flow)**
-    *   **Story 2.1:** Tạo `Polling Service` để lấy các `PhieuNhapHeader` và đẩy task vào Celery.
-    *   **Story 2.2:** Tạo `PhieuNhapWorker` nhận task, đọc dữ liệu đầy đủ.
+    *   **Story 2.1:** Cập nhật `Polling Service` để **lấy toàn bộ dữ liệu** (Header và Details) cho `Phiếu Nhập`, xây dựng payload hoàn chỉnh và đẩy task vào Celery.
+    *   **Story 2.2:** Cập nhật `PhieuNhapWorker` để **nhận payload đã chuẩn bị sẵn**, loại bỏ logic đọc dữ liệu từ DB.
     *   **Story 2.3:** Xây dựng lớp `PartnerAPIClient` để gọi API đối tác.
-    *   **Story 2.4:** Tích hợp logic xử lý response và cập nhật trạng thái vào DB.
-    *   **Story 2.5:** Tích hợp logic ghi log chi tiết vào MongoDB.
+    *   **Story 2.4:** Tích hợp logic xử lý response và cập nhật trạng thái vào DB (trong Worker).
+    *   **Story 2.5:** Tích hợp logic ghi log chi tiết vào MongoDB (trong Worker).
     *   **Story 2.6:** Triển khai cơ chế retry của Celery cho các lỗi mạng.
 
 *   **Epic 3: Mở rộng cho các loại phiếu khác**
