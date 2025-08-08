@@ -59,6 +59,25 @@ See [`app/core/config.py`](app/core/config.py:8) for details.
    - `phieu_xuat_worker` (export slip worker)
    - `hoa_don_worker` (invoice worker)
 
+## 📅 Scheduled Celery Beat Tasks
+
+All scheduled tasks are defined in [`src/tasks/process_records.py`](src/tasks/process_records.py):
+
+- `poll_new_hoadonheader`: Polls new `HoaDonHeader` records from MSSQL, deduplicates, and queues processing.
+- `poll_new_hoadondetail`: Polls new `HoaDonDetail` records from MSSQL, deduplicates, and queues processing.
+- `collect_successful_tasks`: Collects all successful processing logs and saves a daily report to MongoDB.
+- `cleanup_old_logs`: Cleans up old `SUCCESS` logs from MongoDB (default: older than 7 days).
+
+## 📁 Project Plan
+
+All project plans and phase documents are now located in the [`plan/`](plan/) folder for easy reference.
+
+---
+
+**Phase 2 (Polling và Tạo Task) đã hoàn tất.**
+- Hệ thống đã tự động truy vấn, chống trùng lặp, tạo log và đẩy task xử lý cho từng hóa đơn mới từ MSSQL.
+- Các task định kỳ và worker đã được cấu hình hoàn chỉnh.
+
 5. **Install Python dependencies (for local development outside Docker):**
    ```bash
    pip install -r requirements.txt

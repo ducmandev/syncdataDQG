@@ -8,7 +8,7 @@ Lưu thông tin chung của mỗi hóa đơn bán hàng.
 
 | Tên cột | Kiểu dữ liệu | Bắt buộc | Ghi chú |
 | :--- | :--- | :---: | :--- |
-| `id` | INT, PRIMARY KEY, AUTO\_INCREMENT | ✅ | Khóa chính của bảng trong CSDL local. |
+| `id` | NVARCHAR(50), PRIMARY KEY, AUTO\_INCREMENT | ✅ | Khóa chính của bảng trong CSDL local. |
 | `local_invoice_id` | NVARCHAR(50) | ✅ | Mã hóa đơn của cơ sở (tương ứng `ma_hoa_don`). |
 | `national_invoice_id` | NVARCHAR(100) | | Mã hóa đơn do hệ thống Dược quốc gia trả về. |
 | `pharmacy_code` | NVARCHAR(50) | ✅ | Mã cơ sở GPP (tương ứng `ma_co_so`). |
@@ -29,7 +29,7 @@ Lưu chi tiết từng loại thuốc trong một hóa đơn.
 | Tên cột | Kiểu dữ liệu | Bắt buộc | Ghi chú |
 | :--- | :--- | :---: | :--- |
 | `id` | INT, PRIMARY KEY, AUTO\_INCREMENT | ✅ | Khóa chính của bảng. |
-| `sales_invoice_id` | INT, FOREIGN KEY | ✅ | **Khóa ngoại, liên kết tới `SalesInvoices(id)`.** |
+| `sales_invoice_id` | NVARCHAR(50), FOREIGN KEY | ✅ | **Khóa ngoại, liên kết tới `SalesInvoices(id)`.** |
 | `drug_code` | NVARCHAR(50) | ✅ | Mã thuốc (tương ứng `ma_thuoc`). |
 | `drug_name` | NVARCHAR(500) | ✅ | Tên thuốc. |
 | `lot_number` | NVARCHAR(50) | ✅ | Số lô. |
@@ -53,7 +53,7 @@ Lưu chi tiết từng loại thuốc trong một hóa đơn.
 
 | Tên cột | Kiểu dữ liệu | Bắt buộc | Ghi chú |
 | :--- | :--- | :---: | :--- |
-| `id` | INT, PRIMARY KEY, AUTO\_INCREMENT | ✅ | Khóa chính. |
+| `id` | NVARCHAR(50), PRIMARY KEY, AUTO\_INCREMENT | ✅ | Khóa chính. |
 | `local_receipt_id` | NVARCHAR(50) | ✅ | Mã phiếu nhập của cơ sở (tương ứng `ma_phieu`). |
 | `national_receipt_id` | NVARCHAR(100) | | Mã phiếu nhập do hệ thống Dược quốc gia trả về. |
 | `pharmacy_code` | NVARCHAR(50) | ✅ | Mã cơ sở GPP. |
@@ -72,7 +72,7 @@ Lưu chi tiết từng loại thuốc trong một hóa đơn.
 | Tên cột | Kiểu dữ liệu | Bắt buộc | Ghi chú |
 | :--- | :--- | :---: | :--- |
 | `id` | INT, PRIMARY KEY, AUTO\_INCREMENT | ✅ | Khóa chính. |
-| `purchase_receipt_id` | INT, FOREIGN KEY | ✅ | **Khóa ngoại, liên kết tới `PurchaseReceipts(id)`.** |
+| `purchase_receipt_id` | NVARCHAR(50), FOREIGN KEY | ✅ | **Khóa ngoại, liên kết tới `PurchaseReceipts(id)`.** |
 | `drug_code` | NVARCHAR(50) | ✅ | Mã thuốc. |
 | `drug_name` | NVARCHAR(500) | ✅ | Tên thuốc. |
 | `lot_number` | NVARCHAR(50) | ✅ | Số lô. |
@@ -91,7 +91,7 @@ Lưu chi tiết từng loại thuốc trong một hóa đơn.
 
 | Tên cột | Kiểu dữ liệu | Bắt buộc | Ghi chú |
 | :--- | :--- | :---: | :--- |
-| `id` | INT, PRIMARY KEY, AUTO\_INCREMENT | ✅ | Khóa chính. |
+| `id` | NVARCHAR(50), PRIMARY KEY, AUTO\_INCREMENT | ✅ | Khóa chính. |
 | `local_slip_id` | NVARCHAR(50) | ✅ | Mã phiếu xuất của cơ sở (tương ứng `ma_phieu`). |
 | `national_slip_id` | NVARCHAR(100) | | Mã phiếu xuất do hệ thống Dược quốc gia trả về. |
 | `pharmacy_code` | NVARCHAR(50) | ✅ | Mã cơ sở GPP. |
@@ -112,7 +112,7 @@ Lưu chi tiết từng loại thuốc trong một hóa đơn.
 | Tên cột | Kiểu dữ liệu | Bắt buộc | Ghi chú |
 | :--- | :--- | :---: | :--- |
 | `id` | INT, PRIMARY KEY, AUTO\_INCREMENT | ✅ | Khóa chính. |
-| `goods_issue_slip_id` | INT, FOREIGN KEY | ✅ | **Khóa ngoại, liên kết tới `GoodsIssueSlips(id)`.** |
+| `goods_issue_slip_id` | NVARCHAR(50), FOREIGN KEY | ✅ | **Khóa ngoại, liên kết tới `GoodsIssueSlips(id)`.** |
 | `drug_code` | NVARCHAR(50) | ✅ | Mã thuốc. |
 | `drug_name` | NVARCHAR(500) | ✅ | Tên thuốc. |
 | `lot_number` | NVARCHAR(50) | ✅ | Số lô. |
@@ -131,5 +131,5 @@ Lưu chi tiết từng loại thuốc trong một hóa đơn.
 | :--- | :--- | :---: | :--- |
 | `shop_pharmacy_code` | NVARCHAR(50) | ✅ | Mã shop ở cơ sở |
 | `pharmacy_code` | NVARCHAR(50) | ✅ | Mã cơ sở GPP. |
-| `account` | NVARCHAR(50) | ✅ | **Khóa ngoại, liên kết tới `GoodsIssueSlips(id)`.** |
+| `account` | NVARCHAR(50) | ✅ | |
 | `password` | NVARCHAR(50) | ✅ | (Ẩn thông tin nhạy cảm) |

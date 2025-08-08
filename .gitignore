@@ -1,4 +1,44 @@
-.venv/
+# Python
 __pycache__/
-*.pyc
-.env.local
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.pyo
+*.pyd
+*.db
+
+# Virtualenv
+venv/
+ENV/
+env/
+src/venv/
+
+# VSCode
+.vscode/
+.history/
+
+# Docker
+*.log
+*.pid
+*.seed
+*.bak
+*.swp
+docker-compose*.yml
+Dockerfile
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Others
+*.sqlite3
+*.sqlite
+*.mssql
+*.tmp
+*.out
+*.coverage
+*.env
+.env
